@@ -64,4 +64,53 @@ final class BasePartTests: XCTestCase {
         XCTAssertEqual(decoded.timestamp, part.timestamp)
         XCTAssertEqual(decoded.userData, part.userData)
     }
+    
+    func testUnknownFieldsSurviveRoundTrip() throws {
+
+        let json = """
+        {
+            "ObjectID": "^SOME_PART",
+            "Position": [10, 20, 30],
+            "Up": [0, 1, 0],
+            "At": [0, 0, 1],
+            "Timestamp": 1234567890,
+            "UserData": 0,
+            "Message": "Hello, Traveller!",
+            "SnapID": "12345",
+            "CustomMetadata": {
+                "Enabled": true,
+                "Values": [1, 2, 3]
+            }
+        }
+        """
+
+        let originalData = Data(json.utf8)
+
+        let part = try JSONDecoder().decode(
+            BasePart.self,
+            from: originalData
+        )
+
+        XCTAssertEqual(
+            part.extraFields["Message"],
+            .string("Hello, Traveller!")
+        )
+
+        XCTAssertEqual(
+            part.extraFields["SnapID"],
+            .string("12345")
+        )
+
+        let encodedData = try JSONEncoder().encode(part)
+
+        let restored = try JSONDecoder().decode(
+            BasePart.self,
+            from: encodedData
+        )
+
+        XCTAssertEqual(
+            restored.extraFields,
+            part.extraFields
+        )
+    }
 }
