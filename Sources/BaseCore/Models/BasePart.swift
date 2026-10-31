@@ -7,6 +7,7 @@
 
 
 import Foundation
+import simd
 
 public struct BasePart: Codable, Sendable {
 
@@ -33,6 +34,38 @@ public struct BasePart: Codable, Sendable {
         self.at = at
         self.timestamp = timestamp
         self.userData = userData
+    }
+    
+    public var transform: NMSTransform {
+        get throws {
+            guard position.count == 3,
+                  up.count == 3,
+                  at.count == 3 else {
+                throw TransformError.invalidVectorLength
+            }
+
+            return NMSTransform(
+                position: SIMD3<Float>(
+                    position[0],
+                    position[1],
+                    position[2]
+                ),
+                up: SIMD3<Float>(
+                    up[0],
+                    up[1],
+                    up[2]
+                ),
+                at: SIMD3<Float>(
+                    at[0],
+                    at[1],
+                    at[2]
+                )
+            )
+        }
+    }
+    
+    public enum TransformError: Error {
+        case invalidVectorLength
     }
 
     enum CodingKeys: String, CodingKey {

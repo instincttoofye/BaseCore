@@ -113,4 +113,47 @@ final class BasePartTests: XCTestCase {
             part.extraFields
         )
     }
+    
+    func testPartTransform() throws {
+
+        let part = BasePart(
+            objectID: "^SOME_PART",
+            position: [10, 20, 30],
+            up: [0, 1, 0],
+            at: [0, 0, 1],
+            timestamp: 1234567890,
+            userData: 0
+        )
+
+        let transform = try part.transform
+
+        XCTAssertEqual(
+            transform.position,
+            SIMD3<Float>(10, 20, 30)
+        )
+
+        XCTAssertEqual(
+            transform.up,
+            SIMD3<Float>(0, 1, 0)
+        )
+
+        XCTAssertEqual(
+            transform.at,
+            SIMD3<Float>(0, 0, 1)
+        )
+    }
+
+    func testInvalidTransformVectorLength() throws {
+
+        let part = BasePart(
+            objectID: "^SOME_PART",
+            position: [10, 20],
+            up: [0, 1, 0],
+            at: [0, 0, 1],
+            timestamp: 1234567890,
+            userData: 0
+        )
+
+        XCTAssertThrowsError(try part.transform)
+    }
 }
