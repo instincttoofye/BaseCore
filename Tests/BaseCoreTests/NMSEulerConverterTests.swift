@@ -180,4 +180,21 @@ final class NMSEulerConverterTests: XCTestCase {
             }
         }
     }
+    
+    func testExtractEulerAnglesFromNMSTransform() throws {
+
+        let transform = NMSTransform(
+            position: SIMD3<Float>(10, 5, -3),
+            up: SIMD3<Float>(0, 2, 0),
+            at: SIMD3<Float>(0, 0, 1)
+        )
+
+        let angles = try NMSEulerConverter.extractEulerAngles(
+            from: transform
+        )
+
+        XCTAssertEqual(angles.pitch, 0, accuracy: 0.00001)
+        XCTAssertEqual(angles.yaw, 0, accuracy: 0.00001)
+        XCTAssertEqual(angles.roll, 0, accuracy: 0.00001)
+    }
 }

@@ -103,4 +103,37 @@ public enum NMSEulerConverter {
             roll: roll
         )
     }
+    
+    public static func extractEulerAngles(
+        from transform: NMSTransform
+    ) throws -> EulerAngles {
+
+        let matrix = try NMSCoordinateConverter.createMatrix(
+            from: transform
+        )
+
+        let scale = simd_length(transform.up)
+
+        let rotationMatrix = simd_float3x3(
+            SIMD3<Float>(
+                matrix.columns.0.x,
+                matrix.columns.0.y,
+                matrix.columns.0.z
+            ) / scale,
+
+            SIMD3<Float>(
+                matrix.columns.1.x,
+                matrix.columns.1.y,
+                matrix.columns.1.z
+            ) / scale,
+
+            SIMD3<Float>(
+                matrix.columns.2.x,
+                matrix.columns.2.y,
+                matrix.columns.2.z
+            ) / scale
+        )
+
+        return extractEulerAngles(from: rotationMatrix)
+    }
 }
