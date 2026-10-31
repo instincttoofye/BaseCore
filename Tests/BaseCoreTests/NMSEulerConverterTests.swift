@@ -197,4 +197,97 @@ final class NMSEulerConverterTests: XCTestCase {
         XCTAssertEqual(angles.yaw, 0, accuracy: 0.00001)
         XCTAssertEqual(angles.roll, 0, accuracy: 0.00001)
     }
+    
+    func testApplyEulerAnglesPreservesPositionAndScale() throws {
+
+        let original = NMSTransform(
+            position: SIMD3<Float>(10, 5, -3),
+            up: SIMD3<Float>(0, 2, 0),
+            at: SIMD3<Float>(0, 0, 1)
+        )
+
+        let angles = NMSEulerConverter.EulerAngles(
+            pitch: 0,
+            yaw: .pi / 2,
+            roll: 0
+        )
+
+        let updated = NMSEulerConverter.applyEulerAngles(
+            angles,
+            to: original
+        )
+
+        // Position must remain unchanged.
+        XCTAssertEqual(
+            updated.position,
+            original.position
+        )
+
+        // Scale must remain unchanged.
+        XCTAssertEqual(
+            simd_length(updated.up),
+            simd_length(original.up),
+            accuracy: 0.00001
+        )
+
+        // Positive 90° yaw should point toward +X.
+        XCTAssertEqual(updated.at.x, 1, accuracy: 0.00001)
+        XCTAssertEqual(updated.at.y, 0, accuracy: 0.00001)
+        XCTAssertEqual(updated.at.z, 0, accuracy: 0.00001)
+    }
+    
+    func testNMSTransformRotationRoundTrip() throws {
+
+        // Start with three nonzero rotations.
+        let originalAngles = NMSEulerConverter.EulerAngles(
+            pitch: .pi / 6,
+            yaw: .pi / 4,
+            roll: .pi / 3
+        )
+
+        // Our starting transform has a nonzero position
+        // and a scale of 2.
+        let startingTransform = NMSTransform(
+            position: SIMD3<Float>(10, 5, -3),
+            up: SIMD3<Float>(0, 2, 0),
+            at: SIMD3<Float>(0, 0, 1)
+        )
+
+        // Apply the rotations to our NMS transform.
+        let rotatedTransform = NMSEulerConverter.applyEulerAngles(
+            originalAngles,
+            to: startingTransform
+        )
+
+        // Extract Euler angles from the rotated transform.
+        let extractedAngles = try NMSEulerConverter.extractEulerAngles(
+            from: rotatedTransform
+        )
+
+        // Reconstruct the NMS transform from those angles.
+        let reconstructedTransform = NMSEulerConverter.applyEulerAngles(
+            extractedAngles,
+            to: rotatedTransform
+        )
+
+        // Compare the actual NMS transformation matrices.
+        let originalMatrix = try NMSCoordinateConverter.createMatrix(
+            from: rotatedTransform
+        )
+
+        let reconstructedMatrix = try NMSCoordinateConverter.createMatrix(
+            from: reconstructedTransform
+        )
+
+        for column in 0..<4 {
+            for row in 0..<4 {
+
+                XCTAssertEqual(
+                    originalMatrix[column][row],
+                    reconstructedMatrix[column][row],
+                    accuracy: 0.00001
+                )
+            }
+        }
+    }
 }

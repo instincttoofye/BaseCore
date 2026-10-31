@@ -136,4 +136,29 @@ public enum NMSEulerConverter {
 
         return extractEulerAngles(from: rotationMatrix)
     }
+    
+    public static func applyEulerAngles(
+        _ angles: EulerAngles,
+        to transform: NMSTransform
+    ) -> NMSTransform {
+
+        let rotationMatrix = createRotationMatrix(
+            from: angles
+        )
+
+        // NMS stores scale in the magnitude of Up.
+        let scale = simd_length(transform.up)
+
+        // Column 1 represents the rotated Up vector.
+        let newUp = rotationMatrix.columns.1 * scale
+
+        // Column 2 represents the rotated forward direction.
+        let newAt = rotationMatrix.columns.2
+
+        return NMSTransform(
+            position: transform.position,
+            up: newUp,
+            at: newAt
+        )
+    }
 }
