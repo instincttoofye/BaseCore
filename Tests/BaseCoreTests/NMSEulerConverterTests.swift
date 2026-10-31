@@ -113,4 +113,71 @@ final class NMSEulerConverterTests: XCTestCase {
         XCTAssertEqual(rotatedRight.y, 1, accuracy: 0.00001)
         XCTAssertEqual(rotatedRight.z, 0, accuracy: 0.00001)
     }
+    
+    func testEulerAnglesRoundTrip() {
+
+        let original = NMSEulerConverter.EulerAngles(
+            pitch: .pi / 6,
+            yaw: .pi / 4,
+            roll: .pi / 3
+        )
+
+        let matrix = NMSEulerConverter.createRotationMatrix(
+            from: original
+        )
+
+        let extracted = NMSEulerConverter.extractEulerAngles(
+            from: matrix
+        )
+
+        XCTAssertEqual(
+            extracted.pitch,
+            original.pitch,
+            accuracy: 0.00001
+        )
+
+        XCTAssertEqual(
+            extracted.yaw,
+            original.yaw,
+            accuracy: 0.00001
+        )
+
+        XCTAssertEqual(
+            extracted.roll,
+            original.roll,
+            accuracy: 0.00001
+        )
+    }
+    
+    func testGimbalLockPreservesOrientation() {
+
+        let original = NMSEulerConverter.EulerAngles(
+            pitch: .pi / 2,
+            yaw: .pi / 4,
+            roll: .pi / 6
+        )
+
+        let originalMatrix = NMSEulerConverter.createRotationMatrix(
+            from: original
+        )
+
+        let extracted = NMSEulerConverter.extractEulerAngles(
+            from: originalMatrix
+        )
+
+        let reconstructedMatrix = NMSEulerConverter.createRotationMatrix(
+            from: extracted
+        )
+
+        for column in 0..<3 {
+            for row in 0..<3 {
+
+                XCTAssertEqual(
+                    reconstructedMatrix[column][row],
+                    originalMatrix[column][row],
+                    accuracy: 0.00001
+                )
+            }
+        }
+    }
 }

@@ -55,4 +55,52 @@ public enum NMSEulerConverter {
 
         return yawMatrix * pitchMatrix * rollMatrix
     }
+    
+    public static func extractEulerAngles(
+        from matrix: simd_float3x3
+    ) -> EulerAngles {
+
+        // Our convention:
+        // R = Yaw * Pitch * Roll
+        // Positive pitch = nose up
+
+        let pitch = asin(
+            max(-1, min(1, matrix.columns.2.y))
+        )
+
+        let cosPitch = cos(pitch)
+
+        let yaw: Float
+        let roll: Float
+
+        if abs(cosPitch) > 0.00001 {
+
+            yaw = atan2(
+                matrix.columns.2.x,
+                matrix.columns.2.z
+            )
+
+            roll = atan2(
+                matrix.columns.0.y,
+                matrix.columns.1.y
+            )
+
+        } else {
+
+            // Gimbal lock: yaw and roll are not
+            // independently recoverable.
+            roll = 0
+
+            yaw = atan2(
+                -matrix.columns.0.z,
+                matrix.columns.0.x
+            )
+        }
+
+        return EulerAngles(
+            pitch: pitch,
+            yaw: yaw,
+            roll: roll
+        )
+    }
 }
