@@ -64,6 +64,28 @@ public struct BasePart: Codable, Sendable {
         }
     }
     
+    public mutating func updateTransform(
+        _ transform: NMSTransform
+    ) {
+        position = [
+            transform.position.x,
+            transform.position.y,
+            transform.position.z
+        ]
+
+        up = [
+            transform.up.x,
+            transform.up.y,
+            transform.up.z
+        ]
+
+        at = [
+            transform.at.x,
+            transform.at.y,
+            transform.at.z
+        ]
+    }
+    
     public enum TransformError: Error {
         case invalidVectorLength
     }

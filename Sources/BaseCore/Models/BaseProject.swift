@@ -17,17 +17,20 @@ public struct BaseProject: Codable, Sendable {
     public var type: BaseProjectType
     public var parts: [BasePart]
     public var baseVersion: Int
+    public var includesBaseVersion: Bool
     public var extraFields: [String: JSONValue]
 
     public init(
         type: BaseProjectType = .base,
         parts: [BasePart] = [],
         baseVersion: Int = 8,
+        includesBaseVersion: Bool = true,
         extraFields: [String: JSONValue] = [:]
     ) {
         self.type = type
         self.parts = parts
         self.baseVersion = baseVersion
+        self.includesBaseVersion = includesBaseVersion
         self.extraFields = extraFields
     }
     
@@ -82,10 +85,12 @@ public struct BaseProject: Codable, Sendable {
             )
         }
 
-        baseVersion = try container.decode(
+        includesBaseVersion = container.contains(versionKey)
+
+        baseVersion = try container.decodeIfPresent(
             Int.self,
             forKey: versionKey
-        )
+        ) ?? 8
 
         let knownKeys: Set<String> = [
             "Objects",
@@ -123,7 +128,9 @@ public struct BaseProject: Codable, Sendable {
         )
 
         try container.encode(parts, forKey: partsKey)
-        try container.encode(baseVersion, forKey: versionKey)
+        if includesBaseVersion {
+            try container.encode(baseVersion, forKey: versionKey)
+        }
 
         let knownKeys: Set<String> = [
             "Objects",

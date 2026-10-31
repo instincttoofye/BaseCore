@@ -18,7 +18,10 @@ let package = Package(
             name: "BaseCore"),
         .testTarget(
             name: "BaseCoreTests",
-            dependencies: ["BaseCore"]
+            dependencies: ["BaseCore"],
+            resources: [
+                .copy("Fixtures/LampPostA.json")
+            ]
         ),
     ]
 )
